@@ -1,0 +1,100 @@
+services:
+  # Base de données PostgreSQL
+  database:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: myapp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./healthAI-database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Backend Python
+  api_backend:
+    build:
+      context: ./healthAI-backend-API
+      dockerfile: Dockerfile
+    container_name: api_backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres_password@database:5432/myapp_db
+      FLASK_ENV: development
+    volumes:
+      - ./healthAI-backend-API:/app
+    ports:
+      - "5000:5000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app_network
+    command: python app.py
+
+  # ETL Backend Python
+  etl_backend:
+    build:
+      context: ./healthAI-backend-ETL
+      dockerfile: Dockerfile
+    container_name: etl_backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres_password@database:5432/myapp_db
+    volumes:
+      - ./healthAI-backend-ETL:/app
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app_network
+    command: python etl.py
+
+  # Frontend (Angular) - garde ta commande actuelle
+  frontend:
+    build:
+      context: ./healthAI-frontend
+      dockerfile: Dockerfile
+    container_name: angular_frontend
+    volumes:
+      - ./healthAI-frontend:/app
+      - /app/node_modules
+    ports:
+      - "4200:4200"
+    depends_on:
+      - api_backend
+    networks:
+      - app_network
+    command: npm start
+
+  # Monitoring Grafana
+  monitoring:
+    image: grafana/grafana:latest
+    container_name: grafana_monitoring
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - app_network
+    depends_on:
+      - database
+
+volumes:
+  postgres_data:
+  grafana_data:
+
+networks:
+  app_network:
+    driver: bridge
