@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # API Backend Python
+  # API Backend (Express / Node)
   api_backend:
     build:
       context: ./healthAI-backend-API
@@ -28,9 +28,10 @@ services:
     container_name: api_backend
     environment:
       DATABASE_URL: postgresql://postgres:postgres_password@database:5432/myapp_db
-      FLASK_ENV: development
+      NODE_ENV: development
     volumes:
       - ./healthAI-backend-API:/app
+      - /app/node_modules
     ports:
       - "5000:5000"
     depends_on:
@@ -38,9 +39,10 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    command: python app.py
+    command: node app.js
+    restart: unless-stopped
 
-  # ETL Backend Python
+  # ETL Backend (Node)
   etl_backend:
     build:
       context: ./healthAI-backend-ETL
@@ -55,9 +57,10 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    command: python etl.py
+    # 🔥 SUPPRIMER python
+    command: node etl.js
 
-  # Frontend (Angular) - garde ta commande actuelle
+  # Frontend Angular
   frontend:
     build:
       context: ./healthAI-frontend
