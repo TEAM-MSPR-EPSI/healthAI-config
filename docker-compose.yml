@@ -45,9 +45,8 @@ services:
       context: ./healthAI-backend-API
       dockerfile: Dockerfile
     container_name: api_backend
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres_password@database:5432/myapp_db
-      NODE_ENV: development
+    env_file:
+      - .env
     volumes:
       - ./healthAI-backend-API:/app
       - /app/node_modules
@@ -58,7 +57,7 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    command: node app.js
+    command: npm run dev
     restart: unless-stopped
 
   # ETL Backend (Node)
