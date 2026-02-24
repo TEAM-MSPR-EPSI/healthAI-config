@@ -4,9 +4,9 @@ services:
     image: postgres:15-alpine
     container_name: postgres_db
     environment:
-      POSTGRES_DB: myapp_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./healthAI-database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -19,6 +19,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  #Agent PDC (Collecte de données pour Grafana)
+  pdc_agent:
+    image: grafana/pdc-agent:latest
+    container_name: pdc_agent
+    environment:
+      - PDC_TOKEN=${PDC_TOKEN}
+      - PDC_CLUSTER=${PDC_CLUSTER}
+      - PDC_GRAFANA_ID=${PDC_GRAFANA_ID}
+    command: >
+      -token ${PDC_TOKEN}
+      -cluster ${PDC_CLUSTER}
+      -gcloud-hosted-grafana-id ${PDC_GRAFANA_ID}
+    networks:
+      - app_network
+    depends_on:
+      - database
+    restart:
+      unless-stopped
 
   # API Backend (Express / Node)
   api_backend:
