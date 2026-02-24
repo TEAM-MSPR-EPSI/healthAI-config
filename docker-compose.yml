@@ -57,8 +57,8 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    # 🔥 SUPPRIMER python
-    command: node etl.js
+    restart: unless-stopped
+    command: node app.js
 
   # Frontend Angular
   frontend:
