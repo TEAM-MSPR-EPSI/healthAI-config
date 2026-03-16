@@ -60,14 +60,14 @@ services:
     command: npm run dev
     restart: unless-stopped
 
-  # ETL Backend (Node)
+  # ETL Backend (Python)
   etl_backend:
     build:
       context: ./healthAI-backend-ETL
       dockerfile: Dockerfile
     container_name: etl_backend
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres_password@database:5432/myapp_db
+    env_file:
+      - ./healthAI-backend-ETL/.env
     volumes:
       - ./healthAI-backend-ETL:/app
     depends_on:
@@ -75,8 +75,8 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    restart: unless-stopped
-    command: node app.js
+    restart: no
+    command: python etl.py
 
   # Frontend Angular
   frontend:
