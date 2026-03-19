@@ -76,7 +76,9 @@ services:
     networks:
       - app_network
     restart: no
-    command: python etl.py
+    #1er lancement (docker compose up): build le conteneur puis passe en état Exited
+    #Lancement manuel suivant : exécute l'ETL Python
+    command: ["sh", "-c", "if [ ! -f /tmp/.etl_ready ]; then touch /tmp/.etl_ready; echo 'ETL en attente (Start manuel pour execution)'; exit 0; fi; python etl.py"]
 
   # Frontend Angular
   frontend:
