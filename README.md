@@ -34,7 +34,7 @@ docker-compose down
 
 ## Mises à jour
 
-Pour synchroniser tous les repositories et appliquer les changements :
+Pour synchroniser tous les dépôts et appliquer les changements :
 
 ```bash
 python git_pull_all.py
@@ -53,13 +53,13 @@ docker-compose logs -f
 ## Variables d'environnement (.env)
 
 ```env
-POSTGRES_DB=healthai_db
-POSTGRES_USER=healthai_user
-POSTGRES_PASSWORD=secure_password
+POSTGRES_DB=db_name
+POSTGRES_USER=username
+POSTGRES_PASSWORD=user_password
 
-PDC_TOKEN=your_token
-PDC_CLUSTER=your_cluster
-PDC_GRAFANA_ID=your_grafana_id
+PDC_TOKEN=token
+PDC_CLUSTER=cluster
+PDC_GRAFANA_ID=grafana_id
 
 # Note: Grafana est hébergé sur Grafana Cloud
 ```
