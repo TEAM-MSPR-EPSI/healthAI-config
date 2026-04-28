@@ -14,7 +14,6 @@ REPOS = [
     "healthAI-config",
     "healthAI-database",
     "healthAI-frontend",
-    "healthAI-monitoring",
 ]
 
 # Couleurs ANSI
