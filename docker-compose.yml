@@ -4,9 +4,9 @@ services:
     image: postgres:15-alpine
     container_name: postgres_db
     environment:
-      POSTGRES_DB: myapp_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./healthAI-database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -20,17 +20,36 @@ services:
       timeout: 5s
       retries: 5
 
-  # API Backend Python
+  #Agent PDC (Collecte de données pour Grafana)
+  pdc_agent:
+    image: grafana/pdc-agent:latest
+    container_name: pdc_agent
+    environment:
+      - PDC_TOKEN=${PDC_TOKEN}
+      - PDC_CLUSTER=${PDC_CLUSTER}
+      - PDC_GRAFANA_ID=${PDC_GRAFANA_ID}
+    command: >
+      -token ${PDC_TOKEN}
+      -cluster ${PDC_CLUSTER}
+      -gcloud-hosted-grafana-id ${PDC_GRAFANA_ID}
+    networks:
+      - app_network
+    depends_on:
+      - database
+    restart:
+      unless-stopped
+
+  # API Backend (Express / Node)
   api_backend:
     build:
       context: ./healthAI-backend-API
       dockerfile: Dockerfile
     container_name: api_backend
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres_password@database:5432/myapp_db
-      FLASK_ENV: development
+    env_file:
+      - .env
     volumes:
       - ./healthAI-backend-API:/app
+      - /app/node_modules
     ports:
       - "5000:5000"
     depends_on:
@@ -38,26 +57,35 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    command: python app.py
+    command: npm run dev
+    restart: unless-stopped
 
-  # ETL Backend Python
+  # ETL Backend (Python + FastAPI)
   etl_backend:
     build:
       context: ./healthAI-backend-ETL
       dockerfile: Dockerfile
     container_name: etl_backend
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres_password@database:5432/myapp_db
+    env_file:
+      - ./healthAI-backend-ETL/.env
     volumes:
       - ./healthAI-backend-ETL:/app
+    ports:
+      - "8000:8000"
     depends_on:
       database:
         condition: service_healthy
     networks:
       - app_network
-    command: python etl.py
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
-  # Frontend (Angular) - garde ta commande actuelle
+  # Frontend Angular
   frontend:
     build:
       context: ./healthAI-frontend
