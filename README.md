@@ -20,9 +20,9 @@ Le dossier `healthAI-config` sert donc de référentiel de configuration, mais l
 
 ## 1. Prérequis
 
-- Docker : version >= 20.10
-- Docker Compose v2 ou `docker compose`
-- Python 3.8+ (pour `git_pull_all.py` si utilisé localement)
+- Docker
+- Docker Compose
+- Python (pour `git_pull_all.py` si utilisé localement)
 - Accès réseau aux services externes nécessaires à la supervision
 
 Vérifier les versions :
@@ -53,13 +53,15 @@ POSTGRES_PORT=db_port
 POSTGRES_URL=postgresql://db_user:db_password@db_host:db_port/db_name
 
 # JWT
-JWT_SECRET=java_web_toke,
+JWT_SECRET=java_web_token,
 
 # Options applicatives
 NODE_ENV=development
 ```
 
-Important : le `docker-compose.yml` racine lit le `.env` racine pour `database` et `api_backend`. Le service `etl_backend` lit son propre fichier `healthAI-backend-ETL/.env`.
+Important : le `docker-compose.yml` racine lit le `.env` racine pour `database`.  
+Le service `etl_backend` lit son propre fichier `healthAI-backend-ETL/.env`.  
+Le service `api_backend` lit son propre fichier `healthAI-backend-API/.env`.
 
 ## 3. Récupérer le code
 
@@ -101,9 +103,11 @@ Remarques:
 
 ## 5. Initialisation de la base de données
 
-La base est déjà branchée dans le `docker-compose.yml` racine. Le fichier `healthAI-database/init.sql` est monté automatiquement au démarrage du conteneur Postgres.
+La base est déjà branchée dans le `docker-compose.yml` racine.  
+Le fichier `healthAI-database/init.sql` est monté automatiquement au démarrage du conteneur Postgres.
 
-Il n'y a rien à créer ni à lancer manuellement pour l'initialisation. Vérifiez simplement que les variables de la base sont correctes dans le `.env` racine, puis démarrez la stack.
+Il n'y a rien à créer ni à lancer manuellement pour l'initialisation.  
+Vérifiez simplement que les variables de la base sont correctes dans le `.env` racine, puis démarrez la stack.
 
 Si la base est déjà en service, laissez les données existantes en place et passez directement à la vérification du fonctionnement.
 
@@ -186,7 +190,8 @@ docker compose up -d
 
 ## 15. Liens utiles
 
-- `healthAI-backend-API/` : code de l'API.
+- `healthAI-backend-API/` : code de l'API
+- `healthAI-backend-API/.env` : variables d'environnement dédiées à l'API.
 - `healthAI-backend-ETL/` : code de  l'ETL.
 - `healthAI-backend-ETL/.env` : variables d'environnement dédiées à l'ETL.
 - `healthAI-database/init.sql` : script d'initialisation de la base de données.
@@ -196,7 +201,10 @@ docker compose up -d
 
 ## 16. Variables d'environnement (liste complète)
 
-Voici la liste consolidée des variables d'environnement utilisées par les différents composants. Le fichier racine `.env` sert pour la DB et l'API. L'ETL lit `healthAI-backend-ETL/.env`.
+Voici la liste consolidée des variables d'environnement utilisées par les différents composants.  
+Le fichier racine `.env` sert pour la BDD.  
+L'ETL lit `healthAI-backend-ETL/.env`.  
+L'API lit `healthAI-backend-API/.env`.
 
 - **POSTGRES_DB** : nom de la base de données (ex: `healthai_db`)
 - **POSTGRES_USER** : utilisateur Postgres (ex: `healthai_user`)
