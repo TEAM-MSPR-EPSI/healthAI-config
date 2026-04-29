@@ -222,3 +222,18 @@ ETL (healthAI-backend-ETL) :
 - **DB_HOST** : host BDD pour l'ETL
 - **DB_PORT** : port BDD pour l'ETL
 - **DB_NAME** : nom de la base utilisée par l'ETL
+
+## 17. Utilisateurs par défaut dans la BDD
+
+Par défaut, deux utilisateurs sont présents dans la BDD.  
+Ils permettent de se connecter une première fois à l'application sans avoir à créer de compte.
+
+Compte utilisateur par défaut :
+
+Email : user@user.fr
+Mot de passe : 123456789
+
+Compte administrateur par défaut :
+
+Email : admin@admin.fr
+Mot de passe : 123456789
