@@ -230,10 +230,10 @@ Ils permettent de se connecter une première fois à l'application sans avoir à
 
 Compte utilisateur par défaut :
 
-Email : user@user.fr
+Email : user@user.fr  
 Mot de passe : 123456789
 
 Compte administrateur par défaut :
 
-Email : admin@admin.fr
+Email : admin@admin.fr  
 Mot de passe : 123456789
