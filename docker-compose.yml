@@ -147,6 +147,33 @@ services:
       retries: 3
       start_period: 60s
 
+  # Service de recommandations d'activités physiques (Python + FastAPI + Gemini)
+  exercices_service:
+    build:
+      context: ./healthAI-service-exercices
+      dockerfile: Dockerfile
+    container_name: exercices_service
+    env_file:
+      - ./healthAI-service-exercices/.env
+    volumes:
+      - ./healthAI-service-exercices:/app
+    ports:
+      - "8002:8002"
+    depends_on:
+      database:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # Monitoring Grafana
   monitoring:
     image: grafana/grafana:latest
