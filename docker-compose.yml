@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 5
 
-  #Agent PDC (Collecte de données pour Grafana)
+  # Agent PDC (Collecte de données pour Grafana)
   pdc_agent:
     image: grafana/pdc-agent:latest
     container_name: pdc_agent
@@ -36,8 +36,7 @@ services:
       - app_network
     depends_on:
       - database
-    restart:
-      unless-stopped
+    restart: unless-stopped
 
   # API Backend (Express / Node)
   api_backend:
@@ -47,9 +46,7 @@ services:
     container_name: api_backend
     env_file:
       - .env
-    volumes:
-      - ./healthAI-backend-API:/app
-      - /app/node_modules
+    # ✅ Volumes live supprimés (l'image contient déjà le code)
     ports:
       - "5000:5000"
     depends_on:
@@ -57,7 +54,8 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    command: npm run dev
+    # ✅ npm run dev → npm start (nodemon n'est plus dans l'image de prod)
+    command: npm start
     restart: unless-stopped
 
   # ETL Backend (Python + FastAPI)
@@ -68,8 +66,7 @@ services:
     container_name: etl_backend
     env_file:
       - ./healthAI-backend-ETL/.env
-    volumes:
-      - ./healthAI-backend-ETL:/app
+    # ✅ Volume live supprimé (l'image contient déjà le code)
     ports:
       - "8000:8000"
     depends_on:
@@ -91,18 +88,17 @@ services:
       context: ./healthAI-frontend
       dockerfile: Dockerfile
     container_name: angular_frontend
-    volumes:
-      - ./healthAI-frontend:/app
-      - /app/node_modules
+    # ✅ Volumes supprimés (Nginx sert les fichiers compilés, pas Node.js)
+    # ✅ command supprimée (Nginx démarre automatiquement)
     ports:
       - "4200:4200"
     depends_on:
       - api_backend
     networks:
       - app_network
-    command: npm start
+    restart: unless-stopped
 
-  # Base de données NoSQL MongoDB (pour le moteur de recommandation)
+  # Base de données NoSQL MongoDB
   mongodb:
     image: mongo:7-jammy
     container_name: mongodb
@@ -127,8 +123,9 @@ services:
     container_name: nutrition_service
     env_file:
       - ./healthAI-service-nutrition/.env
+    # ✅ Volume live supprimé (l'image contient déjà le code)
     volumes:
-      - ./healthAI-service-nutrition:/app
+      # On garde uniquement le cache HuggingFace (modèles IA, trop lourds à re-télécharger)
       - huggingface_cache:/root/.cache/huggingface
     ports:
       - "8001:8001"
@@ -155,8 +152,7 @@ services:
     container_name: exercices_service
     env_file:
       - ./healthAI-service-exercices/.env
-    volumes:
-      - ./healthAI-service-exercices:/app
+    # ✅ Volume live supprimé (l'image contient déjà le code)
     ports:
       - "8002:8002"
     depends_on:
