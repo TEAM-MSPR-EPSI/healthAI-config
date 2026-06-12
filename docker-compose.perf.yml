@@ -1,0 +1,118 @@
+# Configuration PERFORMANCE — Matériel modeste (≥ 4 Go RAM)
+
+services:
+
+  # ── PDC Agent ─────────────────────────────────────────────────────────────
+  pdc_agent:
+    image: alpine:latest
+    container_name: pdc_agent
+    entrypoint: ["sh", "-c", "echo '[perf] PDC agent desactive' && sleep infinity"]
+    restart: "no"
+    networks:
+      - app_network
+    depends_on: []
+
+  # ── Base de données PostgreSQL ────────────────────────────────────────────
+  database:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+  # ── MongoDB ───────────────────────────────────────────────────────────────
+  mongodb:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
+
+  # ── API Backend ───────────────────────────────────────────────────────────
+  api_backend:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+
+  # ── ETL Backend ───────────────────────────────────────────────────────────
+  etl_backend:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
+
+  # ── Service exercices ─────────────────────────────────────────────────────
+  exercices_service:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
+
+  # ── Service nutrition (remplacement léger) ───────────────────────────────
+  # PyTorch + HuggingFace consomme ~2 Go RAM — remplacé par un mock statique
+  # qui retourne des données de démonstration sans charger le modèle.
+  nutrition_service:
+    image: python:3.11-alpine
+    container_name: nutrition_service
+    command:
+      - "python"
+      - "-c"
+      - |
+        import json, http.server
+
+        MOCK_ANALYSIS = {"foods": [{"name": "Salade verte", "calories": 15, "proteins": 1.3, "carbs": 2.9, "fats": 0.2}], "total": {"calories": 15, "proteins": 1.3, "carbs": 2.9, "fats": 0.2}, "mock": True}
+        MOCK_PLAN = {"days": [{"day": 1, "meals": {"breakfast": "Flocons d avoine + fruits", "lunch": "Salade de poulet", "dinner": "Saumon + légumes vapeur"}}], "mock": True}
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+          def log_message(self, *a): pass
+          def do_GET(self):
+            if self.path == "/health":
+              self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+              self.wfile.write(json.dumps({"status":"ok","mode":"mock-perf"}).encode())
+            else:
+              self.send_response(404); self.end_headers()
+          def do_POST(self):
+            self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+            if "meal-plan" in self.path:
+              self.wfile.write(json.dumps(MOCK_PLAN).encode())
+            else:
+              self.wfile.write(json.dumps(MOCK_ANALYSIS).encode())
+
+        print("[mock] nutrition_service mock actif sur le port 8001")
+        http.server.HTTPServer(("0.0.0.0", 8001), Handler).serve_forever()
+    ports:
+      - "8001:8001"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8001/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 64M
+
+  # ── Frontend ──────────────────────────────────────────────────────────────
+  frontend:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # ── Grafana (monitoring allégé) ───────────────────────────────────────────
+  monitoring:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
