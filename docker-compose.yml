@@ -46,7 +46,9 @@ services:
     container_name: api_backend
     env_file:
       - .env
-    # ✅ Volumes live supprimés (l'image contient déjà le code)
+    volumes:
+      - ./healthAI-backend-API:/app
+      - /app/node_modules
     ports:
       - "5000:5000"
     depends_on:
@@ -54,8 +56,7 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    # ✅ npm run dev → npm start (nodemon n'est plus dans l'image de prod)
-    command: npm start
+    command: npm run dev
     restart: unless-stopped
 
   # ETL Backend (Python + FastAPI)
@@ -66,7 +67,8 @@ services:
     container_name: etl_backend
     env_file:
       - ./healthAI-backend-ETL/.env
-    # ✅ Volume live supprimé (l'image contient déjà le code)
+    volumes:
+      - ./healthAI-backend-ETL:/app
     ports:
       - "8000:8000"
     depends_on:
@@ -88,8 +90,9 @@ services:
       context: ./healthAI-frontend
       dockerfile: Dockerfile
     container_name: angular_frontend
-    # ✅ Volumes supprimés (Nginx sert les fichiers compilés, pas Node.js)
-    # ✅ command supprimée (Nginx démarre automatiquement)
+    volumes:
+      - ./healthAI-frontend:/app
+      - /app/node_modules
     ports:
       - "4200:4200"
     depends_on:
@@ -97,7 +100,7 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    restart: unless-stopped
+    command: npm start
 
   # Base de données NoSQL MongoDB
   mongodb:
@@ -129,7 +132,7 @@ services:
       TOKENIZERS_PARALLELISM: "false"
       TRANSFORMERS_OFFLINE: "0"
     volumes:
-      # On garde uniquement le cache HuggingFace (modèles IA, trop lourds à re-télécharger)
+      - ./healthAI-service-nutrition:/app
       - huggingface_cache:/root/.cache/huggingface
     ports:
       - "8001:8001"
@@ -156,7 +159,8 @@ services:
     container_name: exercices_service
     env_file:
       - ./healthAI-service-exercices/.env
-    # ✅ Volume live supprimé (l'image contient déjà le code)
+    volumes:
+      - ./healthAI-service-exercices:/app
     ports:
       - "8002:8002"
     depends_on:
