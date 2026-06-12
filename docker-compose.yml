@@ -47,6 +47,11 @@ services:
     container_name: api_backend
     env_file:
       - .env
+    environment:
+      - S3_ENDPOINT=http://minio:9000
+      - APP_ACCESS_KEY=${APP_ACCESS_KEY:-app-access-key}
+      - APP_SECRET_KEY=${APP_SECRET_KEY:-app-secret-key}
+      - PUBLIC_MEDIA_URL=http://localhost
     volumes:
       - ./healthAI-backend-API:/app
       - /app/node_modules
@@ -191,11 +196,81 @@ services:
     depends_on:
       - database
 
+  # ─────────────────────────────────────────────
+  #  MinIO — Object Storage (S3-compatible)
+  # ─────────────────────────────────────────────
+  minio:
+    build:
+      context: ./healthAI-application-database
+      dockerfile: Dockerfile
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
+      MINIO_SITE_NAME: ${MINIO_SITE_NAME:-social-storage}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app_network
+
+  # ─────────────────────────────────────────────
+  #  MinIO Init — création des buckets & policies
+  # ─────────────────────────────────────────────
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password123}
+      APP_ACCESS_KEY: ${APP_ACCESS_KEY:-app-access-key}
+      APP_SECRET_KEY: ${APP_SECRET_KEY:-app-secret-key}
+    volumes:
+      - ./healthAI-application-database/scripts/init-buckets.sh:/init-buckets.sh:ro
+      - ./healthAI-application-database/policies:/policies:ro
+    entrypoint: ["/bin/sh", "/init-buckets.sh"]
+    networks:
+      - app_network
+
+  # ─────────────────────────────────────────────
+  #  Nginx — reverse proxy + cache pour les médias
+  # ─────────────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: minio-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./healthAI-application-database/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./healthAI-application-database/nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - app_network
+
 volumes:
   postgres_data:
   grafana_data:
   mongodb_data:
   huggingface_cache:
+  minio_data:
+  nginx_cache:
 
 networks:
   app_network:

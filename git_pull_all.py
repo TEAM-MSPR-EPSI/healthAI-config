@@ -15,7 +15,8 @@ REPOS = [
     "healthAI-database",
     "healthAI-frontend",
     "healthAI-service-nutrition",
-    "healthAI-service-exercices"
+    "healthAI-service-exercices",
+    "healthAI-application-database"
 ]
 
 # Couleurs ANSI
