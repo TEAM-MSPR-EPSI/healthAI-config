@@ -76,7 +76,7 @@ services:
       - app_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -93,7 +93,8 @@ services:
     ports:
       - "4200:4200"
     depends_on:
-      - api_backend
+      database:
+        condition: service_healthy
     networks:
       - app_network
     restart: unless-stopped
@@ -123,7 +124,10 @@ services:
     container_name: nutrition_service
     env_file:
       - ./healthAI-service-nutrition/.env
-    # ✅ Volume live supprimé (l'image contient déjà le code)
+    environment:
+      OMP_NUM_THREADS: "1"
+      TOKENIZERS_PARALLELISM: "false"
+      TRANSFORMERS_OFFLINE: "0"
     volumes:
       # On garde uniquement le cache HuggingFace (modèles IA, trop lourds à re-télécharger)
       - huggingface_cache:/root/.cache/huggingface
@@ -138,7 +142,7 @@ services:
       - app_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -164,7 +168,7 @@ services:
       - app_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
