@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Agent PDC (Collecte de données pour Grafana)
+  #Agent PDC (Collecte de données pour Grafana)
   pdc_agent:
     image: grafana/pdc-agent:latest
     container_name: pdc_agent
@@ -36,7 +36,8 @@ services:
       - app_network
     depends_on:
       - database
-    restart: unless-stopped
+    restart:
+      unless-stopped
 
   # API Backend (Express / Node)
   api_backend:
@@ -102,7 +103,7 @@ services:
       - app_network
     command: npm start
 
-  # Base de données NoSQL MongoDB
+  # Base de données NoSQL MongoDB (pour le moteur de recommandation)
   mongodb:
     image: mongo:7-jammy
     container_name: mongodb
@@ -127,10 +128,13 @@ services:
     container_name: nutrition_service
     env_file:
       - ./healthAI-service-nutrition/.env
+<<<<<<< HEAD
     environment:
       OMP_NUM_THREADS: "1"
       TOKENIZERS_PARALLELISM: "false"
       TRANSFORMERS_OFFLINE: "0"
+=======
+>>>>>>> parent of 2dd6c08 (Multi staging)
     volumes:
       - ./healthAI-service-nutrition:/app
       - huggingface_cache:/root/.cache/huggingface
