@@ -87,7 +87,7 @@ def git_pull(repo_path: Path):
     return result.returncode == 0, output
 
 def run_docker_compose(compose_file: str, label: str):
-    """Lance docker compose -f <fichier> up --build -d depuis le dossier courant."""
+    """Lance docker compose -f <fichier> up -d depuis le dossier courant."""
     header(f"Démarrage Docker Compose — {label}")
     compose_path = BASE_DIR / compose_file
 
@@ -100,7 +100,7 @@ def run_docker_compose(compose_file: str, label: str):
         warn(f"Fichier .env introuvable dans {BASE_DIR}")
         warn("Docker Compose risque de démarrer avec des variables vides.")
 
-    cmd = ["docker", "compose", "-f", str(compose_path), "up", "--build", "-d"]
+    cmd = ["docker", "compose", "-f", str(compose_path), "up", "-d"]
     info(f"Commande : {' '.join(cmd)}")
     print()
 
