@@ -1,31 +1,14 @@
-# healthAI-config
+# HealthAI Coach — Guide de démarrage rapide
 
-Guide de déploiement — healthAI
+Application de coaching santé personnalisé combinant recommandations nutritionnelles et sportives via IA.
 
-Ce document décrit, pas à pas, comment déployer l'ensemble de la solution healthAI en conteneurs Docker, vérifier l'état des services, initialiser la base de données, sauvegarder et restaurer.
+---
 
-## Structure de déploiement
+## Prérequis
 
-À la racine du dépôt, vous devez avoir les fichiers utilisés par Docker Compose :
-
-- `docker-compose.yml` : orchestration des services.
-- `.env` : variables d'environnement réelles pour l'exécution.
-
-Voici les fichiers complémentaires présents dans le dossier healthAI-config :
-
-- `.env.example` : modèle de variables à copier dans le `.env` à la racine.
-- `git_pull_all.py` : script pour mettre à jour tous les dépôts et copier le fichier docker-compose.yml à la racine.
-
-Le dossier `healthAI-config` sert donc de référentiel de configuration, mais le déploiement se lance depuis la racine du projet.
-
-## 1. Prérequis
-
-- Docker
-- Docker Compose
-- Python (pour `git_pull_all.py` si utilisé localement)
-- Accès réseau aux services externes nécessaires à la supervision
-
-Vérifier les versions :
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (ou Docker Engine + Compose sur Linux)
+- Python 3.x
+- Git
 
 ```bash
 docker --version
@@ -33,207 +16,136 @@ docker compose version
 python --version
 ```
 
-Liens d'installation rapides :
+---
 
-- Docker Desktop (Windows / macOS) : https://www.docker.com/products/docker-desktop
-- Docker Engine & Compose (Linux) : https://docs.docker.com/engine/install/
-- docker-compose (cli v2) docs : https://docs.docker.com/compose/
+## Mise en place initiale
 
-## 2. Variables d'environnement
+### 1. Cloner les dépôts
 
-Créez un fichier `.env` à la racine du dépôt à partir de `healthAI-config/.env.example`.
+Clonez tous les dépôts dans un même dossier parent :
 
-```env
-# Postgres
-POSTGRES_DB=db_name
-POSTGRES_USER=db_user
-POSTGRES_PASSWORD=db_password
-POSTGRES_HOST=db_host
-POSTGRES_PORT=db_port
-POSTGRES_URL=postgresql://db_user:db_password@db_host:db_port/db_name
-
-# JWT
-JWT_SECRET=java_web_token,
-
-# Options applicatives
-NODE_ENV=development
+```
+parent/
+├── healthAI-config/
+├── healthAI-frontend/
+├── healthAI-backend-API/
+├── healthAI-backend-ETL/
+├── healthAI-backend-model-IA/
+├── healthAI-database/
+├── healthAI-service-nutrition/
+├── healthAI-service-exercices/
+└── healthAI-application-database/
 ```
 
-Important : le `docker-compose.yml` racine lit le `.env` racine pour `database`.  
-Le service `etl_backend` lit son propre fichier `healthAI-backend-ETL/.env`.  
-Le service `api_backend` lit son propre fichier `healthAI-backend-API/.env`.
+### 2. Configurer les variables d'environnement
 
-## 3. Récupérer le code
-
-Le dépôt principal contient plusieurs services en sous-dossiers. Depuis la racine du dépôt :
+Créez un fichier `.env` à la racine du dossier parent à partir du modèle :
 
 ```bash
-# si vous n'avez pas encore cloné
-git clone repo_url
-cd nom_repo
-
-# mettre à jour tous les sous-dépôts (optionnel)
-python git_pull_all.py
+cp healthAI-config/.env.example .env
 ```
 
-## 4. Construction et démarrage (environnement local / staging)
+Renseignez ensuite les valeurs dans ce `.env` (voir section Variables ci-dessous).
 
-1. Placer un `.env` valide à la racine du dépôt et exécuter cette commande :
+### 3. Placer le script de lancement
+
+Copiez `run.py` depuis `healthAI-config/` dans le dossier parent :
 
 ```bash
-docker compose build
+cp healthAI-config/run.py .
 ```
-
-2. Démarrer les services :
-
-```bash
-docker compose up -d
-```
-
-3. Vérifier le statut :
-
-```bash
-docker compose ps
-docker compose logs -f api_backend
-```
-
-Remarques:
-- Si vous utilisez `docker-compose` (ancienne CLI), remplacez `docker compose` par `docker-compose`.
-- Les variables de ports sont exposées depuis `docker-compose.yml`.
-
-## 5. Initialisation de la base de données
-
-La base est déjà branchée dans le `docker-compose.yml` racine.  
-Le fichier `healthAI-database/init.sql` est monté automatiquement au démarrage du conteneur Postgres.
-
-Il n'y a rien à créer ni à lancer manuellement pour l'initialisation.  
-Vérifiez simplement que les variables de la base sont correctes dans le `.env` racine, puis démarrez la stack.
-
-Si la base est déjà en service, laissez les données existantes en place et passez directement à la vérification du fonctionnement.
-
-## 6. Volumes, persistance et sauvegardes
-
-- Les volumes Docker sont déjà définis pour Postgres.
-- En fonctionnement normal, vous n'avez rien à modifier.
-
-## 7. Démarrage et vérification
-
-Le déploiement courant se fait avec les fichiers déjà présents à la racine. L'utilisateur n'a pas à créer de dossier, ni à lancer de commande spéciale.
-
-```bash
-docker compose up -d
-docker compose ps
-docker compose logs -f
-```
-
-Vérification rapide :
-
-```bash
-curl http://localhost:5000/health
-```
-
-## 8. Réseau et accès
-
-- Les services principaux exposent leurs ports habituels.
-- L'accès se fait via l'URL de l'environnement fourni par l'équipe.
-- L'utilisateur ne doit rien modifier dans l'infrastructure réseau.
-
-## 9. Logs
-
-- Pour consulter les logs :
-
-```bash
-docker compose logs -f
-```
-
-- Pour un service précis :
-
-```bash
-docker compose logs -f api_backend
-docker compose logs -f frontend
-docker compose logs -f etl_backend
-```
-
-## 10. Vérifications post-déploiement
-
-- Endpoint santé API :
-
-```bash
-curl -fsS http://localhost:5000/health
-```
-
-- Frontend : ouvrez l'URL fournie par l'environnement.
-- Si tout répond, le déploiement est terminé.
-
-## 11. Mise à jour et rollback
-
-- Pour mettre à jour la solution, l'équipe n'a qu'à récupérer les dernières images ou le dernier code selon le mode de livraison choisi, puis relancer la stack.
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-- En cas de rollback, revenir à la version précédente des images et relancer `docker compose up -d`.
-
-## 12. Production
-
-- L'environnement actuel est prévu pour être migré en production.
-- L'utilisateur n'a rien à créer ni à modifier en dehors des fichiers `.env` fournis.
-- Les paramètres réseau, volumes et services sont déjà définis.
-
-## 13. Dépannage (erreurs courantes)
-
-- Si un service ne démarre pas, vérifiez d'abord le contenu du `.env`.
-- Si l'API répond mal, regardez les logs avec `docker compose logs -f api_backend`.
-- Si la stack ne répond pas, relancez `docker compose up -d`.
-
-## 15. Liens utiles
-
-- `healthAI-backend-API/` : code de l'API
-- `healthAI-backend-API/.env` : variables d'environnement dédiées à l'API.
-- `healthAI-backend-ETL/` : code de  l'ETL.
-- `healthAI-backend-ETL/.env` : variables d'environnement dédiées à l'ETL.
-- `healthAI-database/init.sql` : script d'initialisation de la base de données.
-- `git_pull_all.py` : script de mise à jour des dépôts.
 
 ---
 
-## 16. Variables d'environnement (liste complète)
+## Lancer le projet
 
-Voici la liste consolidée des variables d'environnement utilisées par les différents composants.  
-Le fichier racine `.env` sert pour la BDD.  
-L'ETL lit `healthAI-backend-ETL/.env`.  
-L'API lit `healthAI-backend-API/.env`.
+Depuis le **dossier parent** :
 
-- **POSTGRES_DB** : nom de la base de données (ex: `healthai_db`)
-- **POSTGRES_USER** : utilisateur Postgres (ex: `healthai_user`)
-- **POSTGRES_PASSWORD** : mot de passe Postgres (ex: `password`)
-- **POSTGRES_HOST** : host Postgres (ex: `database` ou `localhost`)
-- **POSTGRES_PORT** : port Postgres (ex: `5432`)
-- **POSTGRES_URL** : URL de connexion complète utilisée par le pool PostgreSQL, ex: `postgresql://db_user:db_password@db_host:db_port/db_name
-`
-- **JWT_SECRET** : Java Web Token pour signer/valider les tokens (doit être long et secret)
-- **NODE_ENV** : `development` ou `production` (détermine le comportement du Dockerfile / démarrage)
+```bash
+python run.py
+```
 
-ETL (healthAI-backend-ETL) :
-- **DB_USER** : utilisateur BDD pour l'ETL
-- **DB_PASSWORD** : mot de passe BDD pour l'ETL
-- **DB_HOST** : host BDD pour l'ETL
-- **DB_PORT** : port BDD pour l'ETL
-- **DB_NAME** : nom de la base utilisée par l'ETL
+Le menu propose :
 
-## 17. Utilisateurs par défaut dans la BDD
+| Choix | Action |
+|-------|--------|
+| `1` | `git pull` sur tous les dépôts + copie des fichiers de config |
+| `2` | Lance la stack complète (mode normal) |
+| `3` | Lance la stack en mode **offline** (sans appels LLM externes) |
+| `4` | Lance la stack en mode **performance** (machines ≥ 4 Go RAM) |
 
-Par défaut, deux utilisateurs sont présents dans la BDD.  
-Ils permettent de se connecter une première fois à l'application sans avoir à créer de compte.
+---
 
-Compte utilisateur par défaut :
+## Accès aux services
 
-Email : user@user.fr  
-Mot de passe : 123456789
+| Service | URL |
+|---------|-----|
+| Frontend Angular | http://localhost:4200 |
+| API Backend | http://localhost:5000 |
+| ETL Backend | http://localhost:8000 |
+| Service Nutrition | http://localhost:8001 |
+| Service Exercices | http://localhost:8002 |
+| Grafana | http://localhost:3000 |
+| MinIO Console | http://localhost:9001 |
 
-Compte administrateur par défaut :
+---
 
-Email : admin@admin.fr  
-Mot de passe : 123456789
+## Comptes par défaut
+
+| Rôle | Email | Mot de passe |
+|------|-------|--------------|
+| Utilisateur | user@user.fr | 123456789 |
+| Administrateur | admin@admin.fr | 123456789 |
+
+---
+
+## Variables d'environnement principales
+
+| Variable | Description |
+|----------|-------------|
+| `POSTGRES_DB` | Nom de la base de données |
+| `POSTGRES_USER` | Utilisateur PostgreSQL |
+| `POSTGRES_PASSWORD` | Mot de passe PostgreSQL |
+| `JWT_SECRET` | Clé secrète pour les tokens JWT |
+| `MINIO_ROOT_USER` | Utilisateur MinIO |
+| `MINIO_ROOT_PASSWORD` | Mot de passe MinIO |
+| `PDC_TOKEN` | Token Grafana Cloud (optionnel) |
+
+Les services ETL, nutrition et exercices lisent leurs propres `.env` dans leurs dossiers respectifs.
+
+---
+
+## Commandes utiles
+
+```bash
+# Voir l'état des conteneurs
+docker compose ps
+
+# Suivre les logs en temps réel
+docker compose logs -f
+
+# Logs d'un service précis
+docker compose logs -f api_backend
+
+# Arrêter la stack
+docker compose down
+
+# Vérification santé de l'API
+curl http://localhost:5000/health
+```
+
+---
+
+## Modes de lancement
+
+**Normal** — stack complète avec tous les services actifs et connexions externes.
+
+**Offline** — désactive les appels vers les APIs externes (Gemini, USDA, Grafana Cloud). Utile sans accès internet ou en démonstration.
+
+**Performance** — limite les ressources CPU/RAM de chaque conteneur. Le service nutrition est remplacé par un mock léger. Recommandé sur les machines avec peu de RAM.
+
+---
+
+## Documentation complète
+
+Consultez `GUIDE_COMPLET_HEALTHAI.md` dans ce dépôt pour l'architecture détaillée, les benchmarks technologiques, les tests et les guides d'accessibilité.
