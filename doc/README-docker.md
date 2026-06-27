@@ -671,7 +671,3 @@ curl http://localhost:8002/health    # Service Exercices
 # Accéder à Grafana
 # http://localhost:3000  (admin / admin)
 ```
-
----
-
-*Documentation générée depuis les Dockerfiles, le docker-compose.yml et les guides du projet HealthAI Coach — MSPR TPRE601.*

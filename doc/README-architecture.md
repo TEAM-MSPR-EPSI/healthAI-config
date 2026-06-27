@@ -970,7 +970,3 @@ Inférence sur 10 000 prédictions :
 | Node.js | 1.84 s | 0.184 ms | 310 Mo |
 
 > **Python retenu** : écosystème ML sans équivalent (scikit-learn, PyTorch, Hugging Face), inférence 6× plus rapide que Node.js.
-
----
-
-*Documentation générée depuis les Dockerfiles, le schéma SQL, les fichiers de configuration et le guide complet HealthAI Coach — MSPR TPRE601.*

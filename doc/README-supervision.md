@@ -527,7 +527,3 @@ Supervision adaptée :
 - ✅ Healthchecks Docker
 - ✅ Logs Docker
 - ⚠️ Service Nutrition remplacé par un mock léger
-
----
-
-*Documentation générée depuis le docker-compose.yml, les schémas de base de données, les APIs et le guide complet HealthAI Coach — MSPR TPRE601.*
