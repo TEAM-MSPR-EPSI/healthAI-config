@@ -520,5 +520,3 @@ push / pull_request (branches : dev, main)
 | Navigateurs E2E validés | 3/3 | Chromium, Firefox, WebKit |
 
 ---
-
-*Plan de test établi sur la base de la documentation technique et du code source du projet HealthAI Coach (MSPR 1, 2 & 3).*
