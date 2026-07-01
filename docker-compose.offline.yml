@@ -2,8 +2,6 @@
 
 services:
 
-  # ── PDC Agent (Grafana Cloud) ─────────────────────────────────────────────
-  # Remplacé par un conteneur no-op : aucun appel réseau sortant
   pdc_agent:
     image: alpine:latest
     container_name: pdc_agent
@@ -13,10 +11,6 @@ services:
       - app_network
     depends_on: []
 
-  # ── Service exercices ─────────────────────────────────────────────────────
-  # Désactive les appels vers l'API LLM externe (OpenRouter / Gemini).
-  # Les services doivent lire MOCK_MODE=true pour retourner des réponses
-  # pré-calculées au lieu d'appeler l'API.
   exercices_service:
     environment:
       MOCK_MODE: "true"
@@ -24,18 +18,11 @@ services:
       GEMINI_API_KEY: "mock-offline-key"
       GEMINI_MODEL: "mock"
 
-  # ── Service nutrition ─────────────────────────────────────────────────────
-  # Désactive les appels vers l'API USDA FoodData Central.
-  # Le modèle HuggingFace (food detection) continue d'être chargé depuis le
-  # cache local — s'assurer que le volume huggingface_cache est peuplé.
   nutrition_service:
     environment:
       MOCK_MODE: "true"
       USDA_API_KEY: "mock-offline-key"
 
-  # ── ETL Backend ───────────────────────────────────────────────────────────
-  # Désactive les extractions depuis Open Food Facts et l'API Wger (internet).
-  # Les données de démonstration déjà chargées en base restent disponibles.
   etl_backend:
     environment:
       MOCK_MODE: "true"

@@ -2,7 +2,6 @@
 
 services:
 
-  # ── PDC Agent ─────────────────────────────────────────────────────────────
   pdc_agent:
     image: alpine:latest
     container_name: pdc_agent
@@ -12,7 +11,6 @@ services:
       - app_network
     depends_on: []
 
-  # ── Base de données PostgreSQL ────────────────────────────────────────────
   database:
     deploy:
       resources:
@@ -20,7 +18,6 @@ services:
           cpus: "0.5"
           memory: 256M
 
-  # ── MongoDB ───────────────────────────────────────────────────────────────
   mongodb:
     deploy:
       resources:
@@ -28,7 +25,6 @@ services:
           cpus: "0.3"
           memory: 256M
 
-  # ── API Backend ───────────────────────────────────────────────────────────
   api_backend:
     deploy:
       resources:
@@ -36,7 +32,6 @@ services:
           cpus: "0.5"
           memory: 384M
 
-  # ── ETL Backend ───────────────────────────────────────────────────────────
   etl_backend:
     deploy:
       resources:
@@ -44,7 +39,6 @@ services:
           cpus: "0.3"
           memory: 256M
 
-  # ── Service exercices ─────────────────────────────────────────────────────
   exercices_service:
     deploy:
       resources:
@@ -52,9 +46,6 @@ services:
           cpus: "0.3"
           memory: 256M
 
-  # ── Service nutrition (remplacement léger) ───────────────────────────────
-  # PyTorch + HuggingFace consomme ~2 Go RAM — remplacé par un mock statique
-  # qui retourne des données de démonstration sans charger le modèle.
   nutrition_service:
     image: python:3.11-alpine
     container_name: nutrition_service
@@ -101,7 +92,6 @@ services:
           cpus: "0.2"
           memory: 64M
 
-  # ── Frontend ──────────────────────────────────────────────────────────────
   frontend:
     deploy:
       resources:
@@ -109,7 +99,6 @@ services:
           cpus: "0.5"
           memory: 512M
 
-  # ── Grafana (monitoring allégé) ───────────────────────────────────────────
   monitoring:
     deploy:
       resources:
