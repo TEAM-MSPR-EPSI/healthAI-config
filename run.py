@@ -21,8 +21,8 @@ REPOS = [
 # Fichiers à dupliquer depuis healthAI-config vers le dossier courant
 FILES_TO_COPY = [
     "docker-compose.yml",
-    "docker-compose_offline.yml",
-    "docker-compose_perf.yml",
+    "docker-compose.offline.yml",
+    "docker-compose.perf.yml",
     "README.md",
 ]
 
